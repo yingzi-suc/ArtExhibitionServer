@@ -1,5 +1,7 @@
 const express = require('express');
 const md5 = require('blueimp-md5')
+const multer = require('multer')
+const fs = require('fs')
 
 const router = express.Router();
 
@@ -7,6 +9,7 @@ const UserModel = require('../model/web/user')
 const CategoryModel = require('../model/web/exhibitionCategory')
 const ArtHead = require('../model/web/artHeadLines')
 const Discuss = require('../model/web/discuss')
+const Img = require('../model/web/imgLoad')
 
 
 const filter = {password: 0, __v: 0} // 指定过滤的属性
@@ -81,6 +84,32 @@ router.post('/api/hold/exhibition',async (req,res) => {
     })
   }
 })
+
+//图片上传
+router.post(
+    "/api/hold/imgload",
+    multer({
+      //设置文件存储路径
+      dest: "public/images",
+    }).array("file", 1),
+    function (req, res, next) {
+      let files = req.files;
+      let file = files[0];
+      let fileInfo = {};
+      let path = "public/images/" + Date.now().toString() + "_" + file.originalname;
+      fs.renameSync("./public/images/" + file.filename, path);
+      //获取文件基本信息
+      fileInfo.type = file.mimetype;
+      fileInfo.name = file.originalname;
+      fileInfo.size = file.size;
+      fileInfo.path = path;
+      res.send({
+        code: 200,
+        msg: "OK",
+        data: fileInfo,
+      });
+    }
+)
 
 // 艺术展列表
 // router.get('/api/home/highlight',async (req,res) => {

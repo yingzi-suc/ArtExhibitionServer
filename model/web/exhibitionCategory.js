@@ -31,6 +31,9 @@ const categorySchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    img:{ //图片
+        type: String
+    },
     content: { //展会介绍
         type: String,
         required: true

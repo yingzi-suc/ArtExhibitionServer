@@ -16,10 +16,16 @@ var app = express();
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+app.use('/public/',express.static(path.join(__dirname,'./public/')))
+
+////应用session
 app.use(session({
   secret: 'keyboard cat',//配置加密字符串，他会在原有加密基础上加上这个字符串去加密，增加安全性
   resave: false,
-  saveUninitialized: true//无论你是否使用session都默认分配一把钥匙
+  saveUninitialized: true,//无论你是否使用session都默认分配一把钥匙
+  cookie: {
+    maxAge:  24*60*60*1000  // 有效期，单位是毫秒
+  }
 }))
 
 app.set('views', path.join(__dirname, 'views'));
@@ -28,6 +34,7 @@ app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(express.json());  //中间件
 app.use(express.urlencoded({ extended: false }));
+//应用cookie
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
