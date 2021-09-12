@@ -48,8 +48,22 @@ const categorySchema = mongoose.Schema({
         type: Number,
         enum: [1,2,3,4,5,6],
         default: 2
-        //  1:成都  2.上海  3.北京  4.深圳  5.福建  6.江苏
-    }
+        //  1:成都  2.上海  3.北京  4.深圳  5.福建  6.江苏  0.全部
+    },
+    myPinglun: [{ //每个展会的评论信息
+        time: {
+            type: Date,
+            default:Date.now
+        },
+        content: {
+            type: String,
+            required: true
+        },
+        username: {
+            type: String,
+            required: true
+        }
+    }],
 })
 
 module.exports = mongoose.model('Category',categorySchema)

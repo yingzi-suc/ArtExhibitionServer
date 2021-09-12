@@ -9,7 +9,6 @@ const UserModel = require('../model/web/user')
 const CategoryModel = require('../model/web/exhibitionCategory')
 const ArtHead = require('../model/web/artHeadLines')
 const Discuss = require('../model/web/discuss')
-const Img = require('../model/web/imgLoad')
 
 
 const filter = {password: 0, __v: 0} // 指定过滤的属性
@@ -85,7 +84,7 @@ router.post('/api/hold/exhibition',async (req,res) => {
   }
 })
 
-//图片上传
+//展会图片上传
 router.post(
     "/api/hold/imgload",
     multer({
@@ -111,49 +110,13 @@ router.post(
     }
 )
 
-// 艺术展列表
-// router.get('/api/home/highlight',async (req,res) => {
-//    switch (req.query.currentCity) {
-//      case '成都':
-//        cuCity = 1;
-//        break;
-//      case '上海':
-//        cuCity = 2;
-//        break;
-//      case '北京':
-//        cuCity = 3;
-//        break;
-//      case '深圳':
-//        cuCity = 4;
-//        break;
-//      case '福建':
-//        cuCity = 5;
-//        break;
-//      case '江苏':
-//        cuCity = 6;
-//        break;
-//      case '山东':
-//        cuCity = 7;
-//        break;
-//      case '浙江':
-//        cuCity = 8;
-//        break;
-//      case '安徽':
-//        cuCity = 9;
-//        break;
-//      case '全部':
-//        cuCity = 0;
-//        break;
-//    }
-//    console.log(cuCity)
-//    if( cuCity === 0) {
-//      const exhibition = await CategoryModel.find()
-//      res.send({code:0,data:exhibition})
-//    } else {
-//      const exhibition = await CategoryModel.find({city:cuCity})
-//      res.send({code:0,data:exhibition})
-//    }
-// })
+//根据城市获取艺术展列表
+router.get('/api/findArt/cityArts',async (req,res) =>{
+  const city = req.query.city
+  console.log(req.query.city)
+    const exhibitions = await CategoryModel.find({city})
+    res.send({code:0,data:exhibitions})
+})
 
 //获取艺术展列表
 router.get('/api/home/highlight',async (req,res) => {
@@ -165,6 +128,23 @@ router.get('/api/home/highlight',async (req,res) => {
 router.get('/api/detail',async (req,res) => {
   const model = await CategoryModel.findOne({_id: req.query.iid})
   res.send({code:0,data:model})
+})
+
+//详情页根据 id 添加展会评论信息
+router.post('/api/detail/pinglun',async (req,res) => {
+  const result = req.body
+  const user = req.session.user
+  console.log(result)
+  console.log(user);
+  try {
+    const model = await CategoryModel.findByIdAndUpdate(req.body._id,{myPinglun:req.body.myPinglun})
+    res.send({code:0,data:model})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
 })
 
 //获取艺术头条
@@ -186,6 +166,12 @@ router.post('/api/arthead',async (req,res)=>{
   }
 })
 
+//获取交流中心信息
+router.get('/api/communication',async (req,res)=>{
+  const model = await Discuss.find()
+  res.send({code:0,data:model})
+})
+
 //新增交流中心
 router.post('/api/communication',async (req,res)=>{
   const body = req.body
@@ -200,28 +186,53 @@ router.post('/api/communication',async (req,res)=>{
   }
 })
 
-//获取交流中心信息
-router.get('/api/communication',async (req,res)=>{
-  const model = await Discuss.find()
-  res.send({code:0,data:model})
-})
+//交流中心图片上传
+router.post(
+    "/api/communication/imgload",
+    multer({
+      //设置文件存储路径
+      dest: "public/comImages",
+    }).array("file", 1),
+    function (req, res, next) {
+      let files = req.files;
+      let file = files[0];
+      let fileInfo = {};
+      let path = "public/comImages/" + Date.now().toString() + "_" + file.originalname;
+      fs.renameSync("./public/comImages/" + file.filename, path);
+      //获取文件基本信息
+      fileInfo.type = file.mimetype;
+      fileInfo.name = file.originalname;
+      fileInfo.size = file.size;
+      fileInfo.path = path;
+      res.send({
+        code: 200,
+        msg: "OK",
+        data: fileInfo,
+      });
+    }
+)
 
 //交流中心我要发表
 router.post('/api/publicDialog',async (req,res)=>{
   const body = req.body
-  const id = Discuss.findOne()
-  try {
-    const model = await new Discuss(body).save()
-    res.send({code:0,data:model,msg:'添加成功'})
-  }catch (e) {
-    res.send({
-      err_code:500,
-      msg: e.message
-    })
-  }
+
+  // id序号每次新增就 +1
+  const model = await Discuss.find()
+  const dd = model[model.length-1]
+  body['id'] = dd.id+1
+
+  new Discuss(body).save((err,ret)=> {
+    if(err){
+      res.send({
+            err_code:500,
+            msg: err.message
+          })
+    } else {
+      res.send({code:0,data:ret,msg:'添加成功'})
+    }
+  })
 })
 
 //交流中心我要评论
-
 
 module.exports = router;

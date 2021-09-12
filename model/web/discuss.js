@@ -17,11 +17,12 @@ const discussSchema = mongoose.Schema({
         type: Date,
         default:Date.now
     },
-    imgUrl: {
+    img: {
         type: Array,
     },
     dianzanNumber: {
         type: Number,
+        default: 0,
         required: true
     },
     isDianzanNum: {
