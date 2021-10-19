@@ -16,7 +16,7 @@ const filter = {password: 0, __v: 0} // 指定过滤的属性
 //用户注册路由
 router.post('/api/register', async (req, res) => {
   // 1. 获取请求参数
-  const {username, password} = req.body
+  const {username, password,role} = req.body
   try {
     const datas = await UserModel.findOne({username})
     if(datas) {
@@ -24,12 +24,12 @@ router.post('/api/register', async (req, res) => {
       res.send({code: 1,msg: '此用户已存在'})
     } else {
       //如果没有用户，则提示正确信息
-      const user = await new UserModel({username,password: md5(md5(password))}).save()
+      const user = await new UserModel({username,password: md5(md5(password)),role}).save()
       // 生成一个cookie(userid: user._id), 并交给浏览器保存
       // res.cookie('userid',user._id)
 
-      req.session.user = user
-      const data = {username,_id: user._id} //响应数据中不携带password
+      // req.session.user = user
+      const data = {username,_id: user._id,role} //响应数据中不携带password
       res.send({code:0, data})
     }
   }catch (e) {
@@ -51,7 +51,7 @@ router.post('/api/login',async (req,res,next) => {
       // res.cookie('userid',user._id)
 
       // 通过 Session 记录登陆状态
-      req.session.user = user
+      // req.session.user = user
       res.send({code:0,data: user})
     } else {
       //  登录失败，返回错误信息
@@ -70,6 +70,13 @@ router.get('/api/logout',(req,res) =>{
   req.session.user = null
 })
 
+//用户角色升级
+router.get('/api/promotion',async (req,res)=>{
+  const model = await UserModel.findOneAndUpdate({username:req.query.username},{role:'超级用户'})
+  UserModel.find({username:req.query.username},function (err,ret) {
+    res.send({code:0,data:ret})
+  })
+})
 //办展会
 router.post('/api/hold/exhibition',async (req,res) => {
   const body = req.body
@@ -110,6 +117,32 @@ router.post(
     }
 )
 
+//材料证明图片上传
+router.post(
+    "/api/hold/evidenceImg",
+    multer({
+      //设置文件存储路径
+      dest: "public/evidenceImg",
+    }).array("file", 1),
+    function (req, res, next) {
+      let files = req.files;
+      let file = files[0];
+      let fileInfo = {};
+      let path = "public/evidenceImg/" + Date.now().toString() + "_" + file.originalname;
+      fs.renameSync("./public/evidenceImg/" + file.filename, path);
+      //获取文件基本信息
+      fileInfo.type = file.mimetype;
+      fileInfo.name = file.originalname;
+      fileInfo.size = file.size;
+      fileInfo.path = path;
+      res.send({
+        code: 200,
+        msg: "OK",
+        data: fileInfo,
+      });
+    }
+)
+
 //根据城市获取艺术展列表
 router.get('/api/findArt/cityArts',async (req,res) =>{
   const city = req.query.city
@@ -132,13 +165,25 @@ router.get('/api/detail',async (req,res) => {
 
 //详情页根据 id 添加展会评论信息
 router.post('/api/detail/pinglun',async (req,res) => {
-  const result = req.body
-  const user = req.session.user
-  console.log(result)
-  console.log(user);
   try {
     const model = await CategoryModel.findByIdAndUpdate(req.body._id,{myPinglun:req.body.myPinglun})
     res.send({code:0,data:model})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+
+//详情页根据id 点赞
+router.post('/api/detail/dianzan',async (req,res) => {
+  const body = req.body
+  try {
+    const model = await CategoryModel.findByIdAndUpdate(req.body._id,{dianzan:body.dianzan,isDianzan:body.isDianzan})
+    CategoryModel.find({_id:req.body._id},function (err,ret) {
+        res.send({code:0,data:ret})
+    })
   }catch (e) {
     res.send({
       err_code:500,
@@ -233,6 +278,19 @@ router.post('/api/publicDialog',async (req,res)=>{
   })
 })
 
-//交流中心我要评论
+//根据id 添加交流中心我要评论
+router.post('/api/publicDialog/pinglun',async (req,res) => {
+  try {
+    const model = await Discuss.findByIdAndUpdate(req.body._id,{pinglun:req.body.pinglun})
+    res.send({code:0,data:model})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+
+
 
 module.exports = router;

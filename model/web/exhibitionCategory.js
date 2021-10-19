@@ -37,12 +37,19 @@ const categorySchema = mongoose.Schema({
     img:{ //图片
         type:Array
     },
+    evidenceImg: { //证明材料
+        type:Array
+    },
     content: { //展会介绍
         type: String,
         required: true
     },
     dianzan: {
         type: Number
+    },
+    isDianzan: {
+        type:Boolean,
+        default:false
     },
     city: {
         type: Number,
