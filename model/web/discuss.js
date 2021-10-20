@@ -25,10 +25,6 @@ const discussSchema = mongoose.Schema({
         default: 0,
         required: true
     },
-    isDianzanNum: {
-        type: Number,
-        default: 0
-    },
     isDianzan: {
         type: Boolean,
         default: false

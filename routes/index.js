@@ -167,7 +167,9 @@ router.get('/api/detail',async (req,res) => {
 router.post('/api/detail/pinglun',async (req,res) => {
   try {
     const model = await CategoryModel.findByIdAndUpdate(req.body._id,{myPinglun:req.body.myPinglun})
-    res.send({code:0,data:model})
+    CategoryModel.find({_id:req.body._id},function (err,ret) {
+      res.send({code:0,data:ret})
+    })
   }catch (e) {
     res.send({
       err_code:500,
@@ -280,8 +282,25 @@ router.post('/api/publicDialog',async (req,res)=>{
 
 //根据id 添加交流中心我要评论
 router.post('/api/publicDialog/pinglun',async (req,res) => {
+  const body = req.body
   try {
-    const model = await Discuss.findByIdAndUpdate(req.body._id,{pinglun:req.body.pinglun})
+    const model = await Discuss.findByIdAndUpdate(body._id,{pinglun:body.pinglun})
+    Discuss.find({_id:body._id},function (err,ret) {
+      res.send({code:0,data:ret})
+    })
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+
+//交流中心按照内容搜索
+router.post('/api/publicDialog/search',async (req,res)=> {
+  const body = req.body.content
+  try {
+   const model = await Discuss.find({content:{ $regex: body}})
     res.send({code:0,data:model})
   }catch (e) {
     res.send({
@@ -291,6 +310,20 @@ router.post('/api/publicDialog/pinglun',async (req,res) => {
   }
 })
 
-
+//交流中心根据id 点赞
+router.post('/api/publicDialog/dianzan',async (req,res) => {
+  const body = req.body
+  try {
+    const model = await Discuss.findByIdAndUpdate(body._id,{dianzanNumber:body.dianzanNumber,isDianzan:body.isDianzan})
+    Discuss.find({_id:body._id},function (err,ret) {
+      res.send({code:0,data:ret})
+    })
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
 
 module.exports = router;
