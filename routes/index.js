@@ -2,15 +2,11 @@ const express = require('express');
 const md5 = require('blueimp-md5')
 const multer = require('multer')
 const fs = require('fs')
-
 const router = express.Router();
-
 const UserModel = require('../model/web/user')
 const CategoryModel = require('../model/web/exhibitionCategory')
 const ArtHead = require('../model/web/artHeadLines')
 const Discuss = require('../model/web/discuss')
-
-
 const filter = {password: 0, __v: 0} // 指定过滤的属性
 
 //用户注册路由
@@ -46,12 +42,6 @@ router.post('/api/login',async (req,res,next) => {
   try {
     const user = await UserModel.findOne({username,password:md5(md5(password))},filter)
     if(user) {
-      //  登陆成功，返回登录信息
-      // 生成一个cookie(userid: user._id), 并交给浏览器保存
-      // res.cookie('userid',user._id)
-
-      // 通过 Session 记录登陆状态
-      // req.session.user = user
       res.send({code:0,data: user})
     } else {
       //  登录失败，返回错误信息
@@ -67,7 +57,7 @@ router.post('/api/login',async (req,res,next) => {
 
 //用户退出
 router.get('/api/logout',(req,res) =>{
-  req.session.user = null
+  // req.session.user = null
 })
 
 //用户角色升级

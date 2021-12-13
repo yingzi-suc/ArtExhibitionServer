@@ -71,6 +71,11 @@ const categorySchema = mongoose.Schema({
             required: true
         }
     }],
+    isApproval:{
+        type: Boolean,
+        required: true,
+        default:false
+    }
 })
 
 module.exports = mongoose.model('Category',categorySchema)
