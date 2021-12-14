@@ -7,6 +7,8 @@ const UserModel = require('../model/web/user')
 const CategoryModel = require('../model/web/exhibitionCategory')
 const ArtHead = require('../model/web/artHeadLines')
 const Discuss = require('../model/web/discuss')
+const Loginlog = require('../model/web/loginlog')
+
 const filter = {password: 0, __v: 0} // 指定过滤的属性
 
 //用户注册路由
@@ -58,6 +60,19 @@ router.post('/api/login',async (req,res,next) => {
 //用户退出
 router.get('/api/logout',(req,res) =>{
   // req.session.user = null
+})
+
+// 用户登录存储登录信息 
+router.post('/api/login/loginlog', async (req, res) => {
+  try {
+      const user = await new Loginlog(req.body).save()
+      res.send({code:0,msg:'提交成功'})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
 })
 
 //用户角色升级
@@ -144,8 +159,9 @@ router.get('/api/findArt/cityArts',async (req,res) =>{
 //获取艺术展列表
 router.get('/api/home/highlight',async (req,res) => {
     const exhibition = await CategoryModel.find()
+    console.log(exhibition)
     res.send({code:0,data:exhibition})
-})
+}) 
 
 //详情页
 router.get('/api/detail',async (req,res) => {
@@ -187,6 +203,7 @@ router.post('/api/detail/dianzan',async (req,res) => {
 //获取艺术头条
 router.get('/api/arthead',async (req,res)=>{
   const model = await ArtHead.find()
+  
   res.send({code:0,data:model})
 })
 //添加艺术头条

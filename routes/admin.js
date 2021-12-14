@@ -9,6 +9,7 @@ const ExhibitionCategory =require('../model/admin/exhibitionoverview')
 const CategoryModel = require('../model/web/exhibitionCategory')
 const ArtHead = require('../model/web/artHeadLines')
 const Discuss = require('../model/web/discuss')
+const Loginlog = require('../model/web/loginlog')
 
 //用户注册路由
 router.post('/api/admin/user/register', async (req, res) => {
@@ -112,7 +113,7 @@ router.get('/api/admin/info',async (req,res)=>{
   router.get('/api/admin/home/artheadlines',async(req,res)=>{
     try {
       const art = await ArtHead.find()
-      res.send({code:0,data:art})
+      res.send({code:0,data:art.reverse()})
     }catch(e){
       res.send({
         err_code:500,
@@ -178,7 +179,7 @@ router.get('/api/admin/info',async (req,res)=>{
           time:item.time
         })
       })
-      res.send({code:0,data:discuss})
+      res.send({code:0,data:discuss.reverse()})
     }catch(e){
       res.send({
         err_code:500,
@@ -186,5 +187,18 @@ router.get('/api/admin/info',async (req,res)=>{
       })
     }
   })
+// 获取登录日志数据
+router.get('/api/admin/loginLog',async(req,res)=>{
+  try {
+    const data = await Loginlog.find()
+    res.send({code:0,data:data.reverse()})
+  }catch(e){
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
 
+  
 module.exports = router;
