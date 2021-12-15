@@ -14,7 +14,7 @@ const Loginlog = require('../model/web/loginlog')
 //用户注册路由
 router.post('/api/admin/user/register', async (req, res) => {
   // 1. 获取请求参数
-  const {username, password} = req.body
+  const {username, password,name} = req.body
   try {
     const datas = await UserModel.findOne({username})
     if(datas) {
@@ -22,12 +22,12 @@ router.post('/api/admin/user/register', async (req, res) => {
       res.send({code: 1,msg: '此用户已存在'})
     } else {
       //如果没有用户，则提示正确信息
-      const user = await new UserModel({username,password: md5(md5(password))}).save()
+      const user = await new UserModel({username,password: md5(md5(password)),name}).save()
       // 生成一个cookie(userid: user._id), 并交给浏览器保存
       // res.cookie('userid',user._id)
 
       // req.session.user = user
-      const data = {username,_id: user._id} //响应数据中不携带password
+      const data = {username,_id: user._id,name:user.name} //响应数据中不携带password
       res.send({code:0, data})
     }
   }catch (e) {
@@ -39,9 +39,8 @@ router.post('/api/admin/user/register', async (req, res) => {
 })
 //用户登录路由
 router.post('/api/admin/user/login',async (req,res) => {
-    const {username,password,loginDate} = req.body
+    const {username,password} = req.body
     try {
-      const user = await UserModel.findOneAndUpdate(username,{loginDate:loginDate})
       const users = await UserModel.findOne({username,password:md5(md5(password))},filter)
       if(users) {
         res.send({code:0,data: {token:"admin-token",user:users}})
@@ -64,10 +63,10 @@ router.get('/api/admin/info',async (req,res)=>{
 
   //退出登录
   router.post('/api/admin/user/logout',async(req,res) =>{
-    const {username,logoutDate} = req.body
+    const {username} = req.body
     console.log(req.body)
     try {
-      const user = await UserModel.findOneAndUpdate(username,{logoutDate:logoutDate})
+      const user = await UserModel.findOneAndUpdate(username)
       res.send({code:0,data: {msg:'退出成功'}})
     } catch(e){
       res.send({
@@ -199,6 +198,117 @@ router.get('/api/admin/loginLog',async(req,res)=>{
     })
   }
 })
+//登录日志按照内容搜索
+router.post('/api/admin/loginLog/search',async (req,res)=> {
+  try {
+   const model = await Loginlog.find({username:{ $regex: req.body.username}})
+    res.send({code:0,data:model.reverse()})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+// 获取用户管理数据
+router.get('/api/admin/userInfo',async(req,res)=>{
+  try {
+    const data = await UserModel.find()
+    res.send({code:0,data:data.reverse()})
+  }catch(e){
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+//用户管理按照内容搜索
+router.post('/api/admin/userInfo/search',async (req,res)=> {
+  try {
+   const model = await UserModel.find({username:{ $regex: req.body.username}})
+    res.send({code:0,data:model.reverse()})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+//用户管理选中删除
+router.post('/api/admin/userInfo/delete',async (req,res)=> {
+  console.log(req.body)
+  try {
+     const model = await UserModel.findByIdAndRemove(req.body)
+    res.send({code:0,data:{msg:'删除成功'}})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+//修改用户管理员密码和用户名
+router.post('/api/admin/userInfo/edit',async (req,res)=> {
+  console.log(req.body)
+  const body = req.body
+  try {
+     const model = await UserModel.findByIdAndUpdate(body.ip,{name:body.name,password:body.password,username:body.username})
+    res.send({code:0,data:{msg:'修改成功'}})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
 
-  
+ // 获取交流中心
+ router.get('/api/admin/communicationcenter',async(req,res)=>{
+  try {
+    const data = await Discuss.find()
+    
+    let discuss = []
+    data.forEach(item =>{
+      discuss.push({
+        id:item._id,
+        username:item.username,
+        content:item.content,
+        time:item.time,
+        dianzanNumber:item.dianzanNumber,
+        pinglunNum:item.pinglun.length
+      })
+    })
+    res.send({code:0,data:discuss.reverse()})
+  }catch(e){
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+//交流中心按照内容搜索
+router.post('/api/admin/communicationcenter/search',async (req,res)=> {
+  try {
+   const model = await Discuss.find({username:{ $regex: req.body.username}})
+    res.send({code:0,data:model.reverse()})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+//交流中心选中删除
+router.post('/api/admin/communicationcenter/delete',async (req,res)=> {
+  console.log(req.body)
+  try {
+     const model = await Discuss.findByIdAndRemove(req.body)
+    res.send({code:0,data:{msg:'删除成功'}})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
 module.exports = router;
