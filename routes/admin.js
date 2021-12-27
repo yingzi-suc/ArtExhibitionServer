@@ -236,7 +236,7 @@ router.post('/api/admin/userInfo/search',async (req,res)=> {
 })
 //用户管理选中删除
 router.post('/api/admin/userInfo/delete',async (req,res)=> {
-  console.log(req.body)
+  // console.log(req.body)
   try {
      const model = await UserModel.findByIdAndRemove(req.body)
     res.send({code:0,data:{msg:'删除成功'}})
@@ -300,9 +300,39 @@ router.post('/api/admin/communicationcenter/search',async (req,res)=> {
 })
 //交流中心选中删除
 router.post('/api/admin/communicationcenter/delete',async (req,res)=> {
-  console.log(req.body)
+  // console.log(req.body)
   try {
      const model = await Discuss.findByIdAndRemove(req.body)
+    res.send({code:0,data:{msg:'删除成功'}})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+// 展会管理按展会名搜索
+router.post('/api/admin/exhibitionmanagement/search',async (req,res)=> {
+  try {
+    let model = []
+    if(req.body.city !=0){
+     model = await CategoryModel.find({title:{ $regex: req.body.title},city:req.body.city})
+    } else {
+      model = await CategoryModel.find({title:{ $regex: req.body.title}})
+    }
+    res.send({code:0,data:model.reverse()})
+  }catch (e) {
+    res.send({
+      err_code:500,
+      msg: e.message
+    })
+  }
+})
+//展会管理选中删除
+router.post('/api/admin/exhibitionmanagement/delete',async (req,res)=> {
+  // console.log(req.body)
+  try {
+     const model = await CategoryModel.findByIdAndRemove(req.body)
     res.send({code:0,data:{msg:'删除成功'}})
   }catch (e) {
     res.send({
